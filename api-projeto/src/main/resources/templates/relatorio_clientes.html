@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Clientes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; }
+        h1 { color: #1a237e; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        th { background: #e3eafc; }
+        tr:nth-child(even) { background: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h1>Relatório de Clientes</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>CNPJ</th>
+                <th>Loja</th>
+                <th>Razão Social</th>
+                <th>Nome Fantasia</th>
+                <th>Cidade</th>
+                <th>Estado</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Tipo</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="cliente : ${clientes}">
+                <td th:text="${cliente.cnpj}">CNPJ</td>
+                <td th:text="${cliente.loja}">Loja</td>
+                <td th:text="${cliente.razaoSocial}">Razão Social</td>
+                <td th:text="${cliente.nomeFantasia}">Nome Fantasia</td>
+                <td th:text="${cliente.cidade}">Cidade</td>
+                <td th:text="${cliente.estado}">Estado</td>
+                <td th:text="${cliente.email}">Email</td>
+                <td th:text="${cliente.telefone}">Telefone</td>
+                <td th:text="${cliente.tipo}">Tipo</td>
+            </tr>
+        </tbody>
+    </table>
+    <p style="margin-top:24px;">Gerado em: <span th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy HH:mm')}">data</span></p>
+</body>
+</html>

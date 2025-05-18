@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmação de Cadastro</title>
+</head>
+<body>
+    <h2>Cadastro realizado com sucesso!</h2>
+    <p>O cliente <strong th:text="${razaoSocial}">Nome do Cliente</strong> foi cadastrado no sistema.</p>
+    <p>CNPJ: <span th:text="${cnpj}">00.000.000/0000-00</span></p>
+    <p>Data/Hora: <span th:text="${dataHora}">00/00/0000 00:00</span></p>
+    <hr>
+    <p>Atenciosamente,<br/>Equipe Projeto 2025</p>
+</body>
+</html>
