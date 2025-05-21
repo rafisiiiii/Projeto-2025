@@ -5,8 +5,8 @@ import jakarta.validation.constraints.*;
 public class ClienteDTO {
 
     @NotBlank
-    @Pattern(regexp = "\\d{14}", message = "CNPJ deve conter 14 dígitos numéricos")
-    private String cnpj;
+    @Pattern(regexp = "\\d{11}|\\d{14}", message = "Deve conter 11 (CPF) ou 14 (CNPJ) dígitos numéricos")
+    private String cnpj; 
 
     @NotBlank
     private String loja;

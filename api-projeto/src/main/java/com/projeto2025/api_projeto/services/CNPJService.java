@@ -9,20 +9,24 @@ import java.util.Map;
 @Service
 public class CNPJService {
 
-    private final RestTemplate restTemplate; // Campo deve ser final
+    private final RestTemplate restTemplate;
 
     public CNPJService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     public DadosCnpjDTO consultarCnpj(String cnpj) {
+        if (cnpj == null || cnpj.length() != 14) {
+            return null;
+        }
+
         String url = "https://brasilapi.com.br/api/cnpj/v1/" + cnpj;
         ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
-        
+
         if (response.getStatusCode().is2xxSuccessful()) {
             Map<String, Object> data = response.getBody();
             DadosCnpjDTO dto = new DadosCnpjDTO();
-            
+
             dto.setRazaoSocial((String) data.get("razao_social"));
             dto.setNomeFantasia((String) data.get("nome_fantasia"));
             dto.setDataAbertura((String) data.get("data_inicio_atividade"));
@@ -31,7 +35,7 @@ public class CNPJService {
             dto.setCep((String) data.get("cep"));
             dto.setLogradouro((String) data.get("logradouro"));
             dto.setNumero((String) data.get("numero"));
-            
+
             return dto;
         }
         throw new RuntimeException("CNPJ não encontrado");
