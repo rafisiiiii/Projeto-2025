@@ -18,22 +18,25 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
-    public void enviarConfirmacaoCadastroHtml(String emailDestino, String razaoSocial, String cnpj) 
-        throws MessagingException {
-        
-        Context context = new Context();
-        context.setVariable("razaoSocial", razaoSocial);
-        context.setVariable("cnpj", cnpj);
-        context.setVariable("dataHora", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+    public void enviarConfirmacaoCadastroHtml(String emailDestino, String razaoSocial, String codigo, String cnpj, String usuario) 
+    throws MessagingException {
 
-        String htmlContent = templateEngine.process("email-confirmacao.html", context);
+    Context context = new Context();
+    context.setVariable("razaoSocial", razaoSocial);
+    context.setVariable("codigo", codigo);
+    context.setVariable("cnpj", cnpj);
+    context.setVariable("usuario", usuario);
+    context.setVariable("dataHora", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
 
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        helper.setTo(emailDestino);
-        helper.setSubject("Confirmação de Cadastro de Cliente");
-        helper.setText(htmlContent, true); // true = HTML
+    String htmlContent = templateEngine.process("email-confirmacao.html", context);
 
-        mailSender.send(message);
-    }
+    MimeMessage message = mailSender.createMimeMessage();
+    MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+    helper.setTo(emailDestino);
+    helper.setSubject("Confirmação de Cadastro de Cliente");
+    helper.setText(htmlContent, true);
+
+    mailSender.send(message);
+}
+
 }

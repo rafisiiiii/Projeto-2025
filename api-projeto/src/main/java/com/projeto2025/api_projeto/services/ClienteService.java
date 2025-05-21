@@ -6,19 +6,17 @@ import com.projeto2025.api_projeto.entities.Cliente;
 import com.projeto2025.api_projeto.entities.AuditLog;
 import com.projeto2025.api_projeto.repositories.ClienteRepository;
 import com.projeto2025.api_projeto.repositories.AuditLogRepository;
-import com.projeto2025.api_projeto.services.CNPJService;
-
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
-
 import java.time.LocalDateTime;
-//import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,42 +33,82 @@ public class ClienteService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cliente já cadastrado com este CNPJ.");
         }
 
+        // Obtém o usuário autenticado
+        String usuario = obterUsuarioAutenticado();
+
+        // Consulta dados do CNPJ (apenas se for CNPJ válido)
         DadosCnpjDTO cnpjData = cnpjService.consultarCnpj(dto.getCnpj());
+
+        // Constrói o cliente
         Cliente cliente = Cliente.builder()
-                // ... (mantenha seu código de construção do cliente)
+                .cnpj(dto.getCnpj())
+                .loja(dto.getLoja())
+                .codigoMunicipio(dto.getCodigoMunicipio())
+                .razaoSocial(dto.getRazaoSocial())
+                .nomeFantasia(dto.getNomeFantasia())
+                .ddd(dto.getDdd())
+                .telefone(dto.getTelefone())
+                .cidade(dto.getCidade())
+                .estado(dto.getEstado())
+                .bairro(dto.getBairro())
+                .pais(dto.getPais())
+                .cep(dto.getCep())
+                .email(dto.getEmail())
+                .homepage(dto.getHomepage())
+                .tipoPessoa(dto.getTipoPessoa())
+                .tipo(dto.getTipo())
+                .dataAberturaNascimento(dto.getDataAberturaNascimento())
                 .build();
-        
+
         Cliente salvo = clienteRepository.save(cliente);
 
-        // Auditoria
-        auditLogRepository.save(AuditLog.builder()
-                .entidade("Cliente")
-                .acao("CREATE")
-                .usuario("sistema")
-                .dataHora(LocalDateTime.now())
-                .detalhes("Cliente criado: " + salvo.getCnpj())
-                .build());
+        // Registra auditoria com usuário real
+        registrarAuditoria("CREATE", usuario, salvo.getCnpj());
 
-        // E-mail automático 
+        // Envia e-mail de confirmação
         try {
             emailService.enviarConfirmacaoCadastroHtml(
-                "setorfiscal@empresa.com", 
+                "setorfiscal@empresa.com",
                 salvo.getRazaoSocial(),
-                salvo.getCnpj()
+                salvo.getId().toString(), // Código do cliente
+                salvo.getCnpj(),
+                usuario
             );
         } catch (MessagingException e) {
             throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR, 
-                "Falha ao enviar e-mail de confirmação: " + e.getMessage()
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Falha ao enviar e-mail: " + e.getMessage()
             );
         }
 
         return salvo;
     }
 
+    // Método auxiliar para obter usuário autenticado
+    private String obterUsuarioAutenticado() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername();
+        } else if (principal != null) {
+            return principal.toString();
+        }
+        return "sistema"; // Default se não houver autenticação
+    }
+
+    // Método auxiliar para registrar auditoria
+    private void registrarAuditoria(String acao, String usuario, String detalhes) {
+        auditLogRepository.save(AuditLog.builder()
+                .entidade("Cliente")
+                .acao(acao)
+                .usuario(usuario)
+                .dataHora(LocalDateTime.now())
+                .detalhes(detalhes)
+                .build());
+    }
+
     public Cliente buscarPorCnpj(String cnpj) {
         return clienteRepository.findByCnpj(cnpj)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado"));
     }
 
     public Page<Cliente> listarTodos(Pageable pageable) {
@@ -96,16 +134,9 @@ public class ClienteService {
         cliente.setTipoPessoa(dto.getTipoPessoa());
         cliente.setTipo(dto.getTipo());
         cliente.setDataAberturaNascimento(dto.getDataAberturaNascimento());
+        
         Cliente atualizado = clienteRepository.save(cliente);
-
-        auditLogRepository.save(AuditLog.builder()
-                .entidade("Cliente")
-                .acao("UPDATE")
-                .usuario("sistema")
-                .dataHora(LocalDateTime.now())
-                .detalhes("Cliente atualizado: " + atualizado.getCnpj())
-                .build());
-
+        registrarAuditoria("UPDATE", obterUsuarioAutenticado(), "Atualização: " + atualizado.getCnpj());
         return atualizado;
     }
 
@@ -113,14 +144,6 @@ public class ClienteService {
     public void excluirCliente(String cnpj) {
         Cliente cliente = buscarPorCnpj(cnpj);
         clienteRepository.delete(cliente);
-
-        auditLogRepository.save(AuditLog.builder()
-                .entidade("Cliente")
-                .acao("DELETE")
-                .usuario("sistema")
-                .dataHora(LocalDateTime.now())
-                .detalhes("Cliente excluído: " + cliente.getCnpj())
-                .build());
+        registrarAuditoria("DELETE", obterUsuarioAutenticado(), "Exclusão: " + cliente.getCnpj());
     }
 }
-

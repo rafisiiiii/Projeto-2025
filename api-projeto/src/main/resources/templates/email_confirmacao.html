@@ -6,10 +6,11 @@
 </head>
 <body>
     <h2>Cadastro realizado com sucesso!</h2>
-    <p>O cliente <strong th:text="${razaoSocial}">Nome do Cliente</strong> foi cadastrado no sistema.</p>
+    <p>O cliente <strong th:text="${razaoSocial}">Nome do Cliente</strong> (código <strong th:text="${codigo}">0</strong>) foi cadastrado no sistema.</p>
     <p>CNPJ: <span th:text="${cnpj}">00.000.000/0000-00</span></p>
     <p>Data/Hora: <span th:text="${dataHora}">00/00/0000 00:00</span></p>
+    <p>Usuário responsável: <span th:text="${usuario}">usuário</span></p>
     <hr>
-    <p>Atenciosamente,<br/>Equipe Projeto 2025</p>
+    <p>Atenciosamente,<br/>Maicosoft</p>
 </body>
 </html>
